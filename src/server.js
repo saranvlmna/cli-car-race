@@ -1,6 +1,3 @@
-// Phase 4: multi-room server. Each room is an isolated race with its own players,
-// tick loop, and broadcasts (via Socket.IO rooms), so multiple groups can race at
-// once without seeing each other. Still one process, all state in memory.
 import express from 'express';
 import { createServer } from 'node:http';
 import { Server } from 'socket.io';
@@ -15,9 +12,8 @@ app.get('/', (_req, res) => res.send('Car Race server is running. Connect a clie
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 
-// ---- Room registry ----
-const rooms = new Map(); // roomId -> { id, players: Map<socketId, car>, running, tickCount, timer }
-const socketRoom = new Map(); // socketId -> roomId
+const rooms = new Map();
+const socketRoom = new Map();
 
 function getOrCreateRoom(roomId) {
   let room = rooms.get(roomId);
@@ -28,7 +24,6 @@ function getOrCreateRoom(roomId) {
   return room;
 }
 
-// For a bare `join <name>`: reuse the first idle room, else make a fresh one.
 function findOpenRoomId() {
   for (const room of rooms.values()) if (!room.running) return room.id;
   return `room-${rooms.size + 1}`;
@@ -76,7 +71,6 @@ async function startRace(room) {
     io.to(room.id).emit('countdown', n);
     await new Promise((r) => setTimeout(r, n === 'Go!' ? 400 : 700));
   }
-  // A player may have all left during the countdown.
   if (!rooms.has(room.id) || room.players.size === 0) return;
 
   room.timer = setInterval(() => {
@@ -94,7 +88,6 @@ async function startRace(room) {
   }, TICK_MS);
 }
 
-// Remove a socket's player from its room; tear the room down if it empties.
 function leaveRoom(socket) {
   const roomId = socketRoom.get(socket.id);
   if (!roomId) return;
@@ -107,7 +100,6 @@ function leaveRoom(socket) {
   else broadcastLobby(room);
 }
 
-// Accept either a structured { type, args } object or a raw text command string.
 function parseCommand(raw) {
   if (raw && typeof raw === 'object') return { type: raw.type, args: raw.args ?? [] };
   const parts = String(raw || '').trim().split(/\s+/);
@@ -119,7 +111,6 @@ io.on('connection', (socket) => {
     const { type, args } = parseCommand(raw);
     switch (type) {
       case 'join': {
-        // join <room> <name> | join <name> (auto-room) | join (auto both)
         let roomId, name;
         if (args.length >= 2) {
           roomId = args[0];
@@ -137,7 +128,7 @@ io.on('connection', (socket) => {
           socket.emit('message', `Room "${roomId}" has a race in progress — wait for the next one.`);
           return;
         }
-        leaveRoom(socket); // in case they were in another room
+        leaveRoom(socket);
         socket.join(roomId);
         socketRoom.set(socket.id, roomId);
         room.players.set(socket.id, createCar({ name }));

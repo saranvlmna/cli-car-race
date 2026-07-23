@@ -1,7 +1,3 @@
-// Phase 3: thin terminal client. Sends typed commands to the server and renders
-// ONLY the state the server broadcasts — it never simulates positions locally.
-// Reuses the Phase 2 render() so the visuals match the local CLI exactly.
-// Usage: node src/client.js [serverUrl]   (default http://localhost:3000)
 import readline from 'node:readline';
 import { io } from 'socket.io-client';
 import { render, CLEAR_SCREEN } from './render.js';
@@ -11,7 +7,6 @@ const socket = io(url);
 
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout, prompt: '> ' });
 
-// Keep the last rendered frame so we can repaint it above the prompt on demand.
 let lastFrame = 'Connecting to ' + url + ' …';
 let status = '';
 
@@ -68,7 +63,6 @@ socket.on('disconnect', () => {
   paint();
 });
 
-// Every typed line becomes a command sent to the server.
 rl.on('line', (line) => {
   const text = line.trim();
   if (!text) return rl.prompt();
