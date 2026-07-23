@@ -1,0 +1,16 @@
+{
+  "name": "carrace",
+  "version": "0.1.0",
+  "description": "Terminal-based multiplayer car race",
+  "type": "module",
+  "scripts": {
+    "server": "node src/server.js",
+    "client": "node src/client.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1"
+  }
+}
