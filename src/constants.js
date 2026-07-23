@@ -1,6 +1,6 @@
 // Shared race tuning constants. Kept dependency-free so every phase can import them.
 
-export const TRACK_LENGTH = 100; // distance a car must cover to finish
+export const TRACK_LENGTH = 10000; // distance a car must cover to finish
 export const TICK_MS = 100; // wall-clock interval between ticks in the live loops
 
 export const DEFAULT_ACCELERATION = 0.4; // speed gained per tick
